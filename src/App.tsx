@@ -1,16 +1,15 @@
-import { ThemeProvider } from "@/components/theme-provider";
 import Layout from "@/components/layout";
 import Header from "@/components/header";
 import ChatMessage from "./components/chat-message";
+import ConnectModal from "./components/connect-modal";
 
 const App = () => {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <Layout>
-        <Header />
-        <ChatMessage />
-      </Layout>
-    </ThemeProvider>
+    <Layout>
+      <Header />
+      <ChatMessage />
+      <ConnectModal />
+    </Layout>
   );
 };
 

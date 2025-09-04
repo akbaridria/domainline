@@ -1,1 +1,3 @@
 export const DEFAULT_COLORS_BORING_AVATAR = ["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]
+
+export const BASE_DOMAIN_API_URL = "https://api-testnet.doma.xyz/graphql"
