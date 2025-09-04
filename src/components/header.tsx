@@ -4,6 +4,7 @@ import { CommandSearch } from "./command-search";
 import { Button } from "./ui/button";
 import Avatar from "boring-avatars";
 import { useTheme } from "./theme-provider";
+import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
 
 const ToggleTheme = () => {
   const { setTheme, theme } = useTheme();
@@ -43,7 +44,7 @@ const Header = () => {
           <Button size="icon" variant="ghost">
             <Avatar
               name="asd"
-              colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
+              colors={DEFAULT_COLORS_BORING_AVATAR}
             />
           </Button>
         </div>
