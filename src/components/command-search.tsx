@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search,
   CommandIcon,
@@ -16,21 +16,60 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useSearchDomains } from "@/api/query";
+import { extractCAIP10 } from "@/lib/utils";
+import useApp from "@/hooks/useApp";
+import { SUPPORTED_CHAINS } from "@/config";
 
 interface Web3Domain {
   domainName: string;
   owner: string;
   expired_at: Date;
+  network: string;
 }
-
-const mockWeb3Domains: Web3Domain[] = [];
 
 export function CommandSearch() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const {
+    data,
+    isFetching: isLoading,
+    isError,
+  } = useSearchDomains(debouncedSearchValue);
+  const { isAuthenticated } = useApp();
+
+  const listDomains = useMemo(() => {
+    if (isError) return [];
+    return (data || []).map((domain) => {
+      const caip10 = extractCAIP10(domain.claimedBy);
+      const networkName =
+        SUPPORTED_CHAINS.find((chain) => chain.id === caip10?.networkId)
+          ?.name || "Unknown";
+      return {
+        domainName: domain.name,
+        owner: caip10?.accountAddress || "Unknown",
+        network: networkName,
+        expired_at: new Date(domain.expiresAt),
+      } as Web3Domain;
+    });
+  }, [data, isError]);
+
+  console.log(debouncedSearchValue, "ini debounced");
 
   useEffect(() => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      setDebouncedSearchValue(searchValue);
+    }, 400); // 400ms debounce
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [searchValue]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
@@ -40,26 +79,7 @@ export function CommandSearch() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  useEffect(() => {
-    if (searchValue) {
-      setIsSearching(true);
-      const timer = setTimeout(() => {
-        setIsSearching(false);
-      }, 800); // Simulate search delay
-
-      return () => clearTimeout(timer);
-    } else {
-      setIsSearching(false);
-    }
-  }, [searchValue]);
-
-  const filteredDomains = mockWeb3Domains.filter(
-    (domain) =>
-      domain.domainName.toLowerCase().includes(searchValue.toLowerCase()) ||
-      domain.owner.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  }, [isAuthenticated]);
 
   const isExpired = (date: Date) => date < new Date();
 
@@ -69,8 +89,6 @@ export function CommandSearch() {
   const handleMessage = (domainName: string) => {
     console.log(`Navigating to message page for ${domainName}`);
     setIsOpen(false);
-    // Here you would typically navigate to the messaging page
-    // router.push(`/message/${domainName}`);
   };
 
   return (
@@ -97,7 +115,7 @@ export function CommandSearch() {
           onValueChange={setSearchValue}
         />
         <CommandList>
-          {isSearching ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
@@ -107,7 +125,7 @@ export function CommandSearch() {
                 Looking for domains matching "{searchValue}"
               </p>
             </div>
-          ) : filteredDomains.length === 0 ? (
+          ) : listDomains.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Globe className="h-8 w-8 text-muted-foreground" />
@@ -133,7 +151,7 @@ export function CommandSearch() {
             </div>
           ) : (
             <CommandGroup heading="Domains">
-              {filteredDomains.map((domain) => (
+              {listDomains.map((domain) => (
                 <CommandItem
                   key={domain.domainName}
                   className="flex items-center justify-between p-3"
@@ -148,6 +166,9 @@ export function CommandSearch() {
                             Expired
                           </span>
                         )}
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full capitalize">
+                          {domain.network || "ethereum"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">

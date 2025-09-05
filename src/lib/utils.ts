@@ -1,6 +1,19 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
+}
+
+export function extractCAIP10(
+  input: string
+): { accountId: string; networkId: number; accountAddress: string } | null {
+  const parts = input.split(":");
+  if (parts.length === 3) {
+    const [accountId, networkIdStr, accountAddress] = parts;
+    const networkId = Number(networkIdStr);
+    if (isNaN(networkId)) return null;
+    return { accountId, networkId, accountAddress };
+  }
+  return null;
 }

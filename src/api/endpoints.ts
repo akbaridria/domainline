@@ -1,8 +1,9 @@
 import { apiClient } from "./client";
 
 const fetchDomains = async (name: string) => {
-  return apiClient().post("", {
-    query: `
+  return apiClient()
+    .post("", {
+      query: `
             query {
                 names(name: "${name}") {
                     items {
@@ -16,7 +17,8 @@ const fetchDomains = async (name: string) => {
                 }
             }
         `,
-  });
+    })
+    .then((res) => res.data.data.names.items);
 };
 
 export { fetchDomains };

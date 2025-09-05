@@ -27,9 +27,9 @@ const ConnectModal = () => {
   const [open, onOpenChange] = useState(false);
   const [currentStep, setCurrentStep] = useState<ConnectionStep>("wallet");
   const { open: openModalWallet, setOpen: setOpenModalWallet } = useModal();
-  const { isConnecting, isConnected, address } = useAccount();
+  const { isConnecting, isConnected, address, isReconnecting } = useAccount();
   const { signMessageAsync } = useSignMessage();
-  const { setXmtpClient, isAuthenticated } = useApp();
+  const { setXmtpClient, isAuthenticated, setIsAuthenticated } = useApp();
   const [isLoadingXmtp, setIsLoadingXmtp] = useState(false);
 
   useEffect(() => {
@@ -39,6 +39,13 @@ const ConnectModal = () => {
       onOpenChange(true);
     }
   }, [isAuthenticated, onOpenChange]);
+
+  useEffect(() => {
+    if (!isConnected) {
+      setCurrentStep("wallet");
+      setIsAuthenticated(false);
+    }
+  }, [isConnected, setIsAuthenticated]);
 
   const signer: Signer = useMemo(() => {
     return {
@@ -73,8 +80,6 @@ const ConnectModal = () => {
       console.error("Failed to create XMTP client:", error);
     }
   }, [setXmtpClient, signer]);
-
-  const { setIsAuthenticated } = useApp();
 
   const handleComplete = useCallback(() => {
     setIsAuthenticated(true);
@@ -155,11 +160,11 @@ const ConnectModal = () => {
               <CardContent>
                 <Button
                   onClick={handleOpenWallet}
-                  disabled={isConnecting && openModalWallet}
+                  disabled={(isConnecting && openModalWallet) || isReconnecting}
                   className="w-full"
                   size="lg"
                 >
-                  {isConnecting && openModalWallet ? (
+                  {(isConnecting && openModalWallet) || isReconnecting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Connecting...
@@ -193,7 +198,6 @@ const ConnectModal = () => {
                   disabled={isLoadingXmtp}
                   className="w-full"
                   size="lg"
-                  variant="secondary"
                 >
                   {isLoadingXmtp ? (
                     <>

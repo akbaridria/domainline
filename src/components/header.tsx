@@ -30,7 +30,7 @@ const Header = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <GlobeIcon size={16} />
-            <div>DomainLine</div>
+            <div>domainLine</div>
           </div>
           <Separator orientation="vertical" className="min-h-4 min-w-0.5" />
           <CommandSearch />
@@ -45,6 +45,7 @@ const Header = () => {
             <Avatar
               name="asd"
               colors={DEFAULT_COLORS_BORING_AVATAR}
+              variant="beam"
             />
           </Button>
         </div>
