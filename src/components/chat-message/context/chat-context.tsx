@@ -11,15 +11,20 @@ import {
 interface ChatContextType {
   showChat: boolean;
   setShowChat: Dispatch<SetStateAction<boolean>>;
+  isSyncingMessages: boolean;
+  setIsSyncingMessages: Dispatch<SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [showChat, setShowChat] = useState(false);
+  const [isSyncingMessages, setIsSyncingMessages] = useState(false);
 
   return (
-    <ChatContext.Provider value={{ showChat, setShowChat }}>
+    <ChatContext.Provider
+      value={{ showChat, setShowChat, isSyncingMessages, setIsSyncingMessages }}
+    >
       {children}
     </ChatContext.Provider>
   );

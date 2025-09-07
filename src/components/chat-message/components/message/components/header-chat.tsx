@@ -1,53 +1,92 @@
+import { useChatContext } from "@/components/chat-message/context/chat-context";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
+import { shortenAddress } from "@/lib/utils";
 import Avatar from "boring-avatars";
-import { EllipsisIcon, ForwardIcon, LogOutIcon, User2Icon } from "lucide-react";
+import {
+  ArrowLeft,
+  ForwardIcon,
+  LogOutIcon,
+  RotateCcwIcon,
+  User2Icon,
+} from "lucide-react";
+import { useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 
 const HeaderChat = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { setIsSyncingMessages } = useChatContext();
+
+  const user = useMemo(
+    () => searchParams.get("sender") || "---",
+    [searchParams]
+  );
+
   return (
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Avatar
-          name="asd"
-          colors={DEFAULT_COLORS_BORING_AVATAR}
-          size={40}
-          variant="beam"
-        />
-        <div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft />
+          </Button>
+          <Avatar
+            name={user}
+            colors={DEFAULT_COLORS_BORING_AVATAR}
+            size={40}
+            variant="beam"
+          />
+        </div>
+        <div className="hidden md:block">
           <div className="text-sm">Unknown</div>
-          <div className="text-xs text-muted-foreground">
-            0x0a5863C53e9b7700F1DF9081D463631312E6fF42
+          <div className="text-xs text-muted-foreground line-clamp-1">
+            {shortenAddress(user)}
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button variant="ghost" size="icon">
-              <EllipsisIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon">
               <User2Icon />
-              <div className="text-sm">View Profile</div>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>View Profile</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon">
               <ForwardIcon />
-              <div className="text-sm">Send Offers</div>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Send Offers</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" onClick={() => setIsSyncingMessages(true)}>
+              <RotateCcwIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Sync Messages</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" onClick={() => navigate("/")}>
               <LogOutIcon />
-              <div className="text-sm">Exit chat</div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Exit chat</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );

@@ -17,3 +17,8 @@ export function extractCAIP10(
   }
   return null;
 }
+
+export function shortenAddress(address: string): string {
+  if (address.length <= 10) return address;
+  return `${address.slice(0, 10)}...${address.slice(-8)}`;
+}

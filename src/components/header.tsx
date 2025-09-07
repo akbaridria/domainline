@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import Avatar from "boring-avatars";
 import { useTheme } from "./theme-provider";
 import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
+import { useNavigate } from "react-router";
 
 const ToggleTheme = () => {
   const { setTheme, theme } = useTheme();
@@ -24,11 +25,15 @@ const ToggleTheme = () => {
 };
 
 const Header = () => {
+  const navigate = useNavigate();
   return (
     <div className="px-4 py-2 border-b">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => navigate("/")}
+          >
             <GlobeIcon size={16} />
             <div>domainLine</div>
           </div>
