@@ -2,7 +2,7 @@ import type React from "react";
 import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
 import useApp from "@/hooks/useApp";
 import Avatar from "boring-avatars";
-import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
+import { DEFAULT_COLORS_BORING_AVATAR, SUPPORTED_CHAINS } from "@/config";
 import { extractCAIP10, shortenAddress } from "@/lib/utils";
 import { Button } from "./ui/button";
 import {
@@ -30,10 +30,14 @@ const DialogProfile: React.FC = () => {
     if (!data) return [];
     return data.map((domain) => {
       const caip10Extracted = extractCAIP10(domain.claimedBy);
+      const networkName =
+        SUPPORTED_CHAINS.find(
+          (chain) => chain.id === caip10Extracted?.networkId
+        )?.name || "Unknown";
       return {
         name: domain.name,
         user: caip10Extracted?.accountAddress || "Unknown",
-        network: caip10Extracted?.networkId || "Unknown",
+        network: networkName,
         expiredAt: domain.expiresAt,
       };
     });
@@ -92,7 +96,9 @@ const DialogProfile: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Globe2Icon size={16} />
-                            <div className="font-semibold underline underline-offset-4">{domain.name}</div>
+                            <div className="font-semibold underline underline-offset-4">
+                              {domain.name}
+                            </div>
                           </div>
                           <div className="flex items-center gap-1">
                             <ClockIcon size={14} />

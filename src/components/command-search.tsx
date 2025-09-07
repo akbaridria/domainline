@@ -38,7 +38,7 @@ export function CommandSearch() {
     isFetching: isLoading,
     isError,
   } = useSearchDomains(debouncedSearchValue);
-  const { isAuthenticated } = useApp();
+  const { isLogin } = useApp();
 
   const listDomains = useMemo(() => {
     if (isError) return [];
@@ -69,7 +69,7 @@ export function CommandSearch() {
   }, [searchValue]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isLogin) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
@@ -79,7 +79,7 @@ export function CommandSearch() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isAuthenticated]);
+  }, [isLogin]);
 
   const isExpired = (date: Date) => date < new Date();
 

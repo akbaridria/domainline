@@ -12,6 +12,7 @@ import { useAccount } from "wagmi";
 import DefaultScreen from "./components/default-screen";
 import { toast } from "sonner";
 import { Loader } from "lucide-react";
+import DialogSendOffer from "@/components/dialog-send-offer";
 
 const MessageComponent = () => {
   const [searchParams] = useSearchParams();
@@ -184,6 +185,7 @@ const MessageComponent = () => {
         </>
       )}
       {!isVisible && <DefaultScreen />}
+      <DialogSendOffer />
     </div>
   );
 };

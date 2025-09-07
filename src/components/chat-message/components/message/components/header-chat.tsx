@@ -6,6 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
+import useApp from "@/hooks/useApp";
 import { shortenAddress } from "@/lib/utils";
 import Avatar from "boring-avatars";
 import {
@@ -15,18 +16,24 @@ import {
   RotateCcwIcon,
   User2Icon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
 const HeaderChat = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setIsSyncingMessages } = useChatContext();
+  const { setIsSyncingMessages, setShowOfferDialog } = useChatContext();
+  const { setIsOpenProfile, setSelectedProfile } = useApp();
 
   const user = useMemo(
     () => searchParams.get("sender") || "---",
     [searchParams]
   );
+
+  const handleViewProfile = useCallback(() => {
+    setSelectedProfile(user);
+    setIsOpenProfile(true);
+  }, [setIsOpenProfile, setSelectedProfile, user]);
 
   return (
     <div className="flex items-center justify-between">
@@ -57,7 +64,7 @@ const HeaderChat = () => {
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={handleViewProfile}>
               <User2Icon />
             </Button>
           </TooltipTrigger>
@@ -65,7 +72,11 @@ const HeaderChat = () => {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowOfferDialog(true)}
+            >
               <ForwardIcon />
             </Button>
           </TooltipTrigger>
@@ -73,7 +84,11 @@ const HeaderChat = () => {
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" onClick={() => setIsSyncingMessages(true)}>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setIsSyncingMessages(true)}
+            >
               <RotateCcwIcon />
             </Button>
           </TooltipTrigger>
