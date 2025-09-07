@@ -6,6 +6,10 @@ type AppContextType = {
   setXmtpClient: (client: Client | null) => void;
   isAuthenticated: boolean;
   setIsAuthenticated: (auth: boolean) => void;
+  isOpenProfile: boolean;
+  setIsOpenProfile: (open: boolean) => void;
+  selectedProfile?: string;
+  setSelectedProfile: (profile?: string) => void;
 };
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);

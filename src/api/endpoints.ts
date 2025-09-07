@@ -21,4 +21,25 @@ const fetchDomains = async (name: string) => {
     .then((res) => res.data.data.names.items);
 };
 
-export { fetchDomains };
+const fetchAllDomainsFromAddress = async (address: string) => {
+  return apiClient()
+    .post("", {
+      query: `
+            query {
+                names(ownedBy: "${address}") {
+                    items {
+                        claimedBy
+                        eoi
+                        expiresAt
+                        name
+                        isFractionalized
+                        tokenizedAt
+                    }
+                }
+            }
+        `,
+    })
+    .then((res) => res.data.data.names.items);
+};
+
+export { fetchDomains, fetchAllDomainsFromAddress };

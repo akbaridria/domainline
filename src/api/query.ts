@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEY } from "./query-key";
-import { fetchDomains } from "./endpoints";
+import { fetchAllDomainsFromAddress, fetchDomains } from "./endpoints";
 import type { DomainName } from "./types";
 
 const useSearchDomains = (name: string) => {
@@ -10,4 +10,12 @@ const useSearchDomains = (name: string) => {
   });
 };
 
-export { useSearchDomains };
+const useGetAllDomainsFromAddress = (address: string) => {
+  return useQuery<DomainName[]>({
+    queryKey: [QUERY_KEY.GET_ALL_DOMAINS_FROM_ADDRESS, address],
+    queryFn: () => fetchAllDomainsFromAddress(address),
+    enabled: !!address,
+  });
+};
+
+export { useSearchDomains, useGetAllDomainsFromAddress };

@@ -43,6 +43,12 @@ const useXmtp = () => {
   }, [setXmtpClient, signer]);
 
   useEffect(() => {
+    if (!address) {
+      setXmtpClient(null);
+    }
+  }, [address, setXmtpClient]);
+
+  useEffect(() => {
     if (address && !xmtpClient) {
       connectXmtp();
     }
