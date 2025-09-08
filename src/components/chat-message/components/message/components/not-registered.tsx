@@ -17,17 +17,13 @@ const NotRegistered = () => {
             XMTP before you can start a conversation. Until then, you won't be
             able to send them messages.
           </p>
+          <p className="text-orange-700 dark:text-orange-300">
+            To get started, you can visit domainLine to create your XMTP inbox
+            ID and complete registration.
+          </p>
         </div>
 
         <div className="space-y-4">
-          {/* <Button
-            onClick={handleBackToChats}
-            variant="outline"
-            className="border-orange-300 text-orange-700 hover:bg-orange-100 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-900/20 bg-transparent"
-          >
-            Back to Chats
-          </Button> */}
-
           <div className="flex items-center justify-center gap-2 text-xs text-orange-600 dark:text-orange-400">
             <Shield className="w-3 h-3" />
             <span>XMTP Registration Required</span>

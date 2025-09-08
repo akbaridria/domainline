@@ -13,6 +13,11 @@ const fetchDomains = async (name: string) => {
                         name
                         isFractionalized
                         tokenizedAt
+                        tokens {
+                            networkId
+                            tokenAddress
+                            tokenId
+                        }
                     }
                 }
             }
@@ -34,6 +39,11 @@ const fetchAllDomainsFromAddress = async (address: string) => {
                         name
                         isFractionalized
                         tokenizedAt
+                        tokens {
+                            networkId
+                            tokenAddress
+                            tokenId
+                        }
                     }
                 }
             }

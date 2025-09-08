@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
   Search,
   CommandIcon,
@@ -20,6 +20,7 @@ import { useSearchDomains } from "@/api/query";
 import { extractCAIP10 } from "@/lib/utils";
 import useApp from "@/hooks/useApp";
 import { SUPPORTED_CHAINS } from "@/config";
+import DialogCheckingDM from "./dialog-checking-dm";
 
 interface Web3Domain {
   domainName: string;
@@ -29,9 +30,13 @@ interface Web3Domain {
 }
 
 export function CommandSearch() {
+  const [openCheckingDm, setOpenCheckingDm] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
+  const [selectedUser, setSelectedUser] = useState<string | undefined>(
+    undefined
+  );
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const {
     data,
@@ -86,13 +91,19 @@ export function CommandSearch() {
   const truncateAddress = (address: string) =>
     `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-  const handleMessage = (domainName: string) => {
-    console.log(`Navigating to message page for ${domainName}`);
+  const handleMessage = useCallback((user: string) => {
+    setSelectedUser(user);
+    setOpenCheckingDm(true);
     setIsOpen(false);
-  };
+  }, []);
 
   return (
     <>
+      <DialogCheckingDM
+        open={openCheckingDm}
+        onOpenChange={setOpenCheckingDm}
+        userAddress={selectedUser}
+      />
       <Button
         variant="outline"
         className="w-10 h-10 p-2 justify-center text-muted-foreground bg-transparent lg:w-full lg:justify-between lg:px-3 lg:h-auto"
@@ -155,7 +166,7 @@ export function CommandSearch() {
                 <CommandItem
                   key={domain.domainName}
                   className="flex items-center justify-between p-3"
-                  onSelect={() => handleMessage(domain.domainName)}
+                  onSelect={() => handleMessage(domain.owner)}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <div className="flex flex-col gap-1 flex-1">
@@ -188,7 +199,7 @@ export function CommandSearch() {
                     className="h-8 w-8 p-0 hover:bg-accent"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleMessage(domain.domainName);
+                      handleMessage(domain.owner);
                     }}
                   >
                     <MessageCircle className="h-4 w-4" />

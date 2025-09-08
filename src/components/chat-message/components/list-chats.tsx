@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatListItem from "./chat-list-item";
 import useApp from "@/hooks/useApp";
 import { useEffect, useState } from "react";
-import { ConsentState, type Dm } from "@xmtp/browser-sdk";
+import { type Dm } from "@xmtp/browser-sdk";
 import { MessageCircle } from "lucide-react";
 import ChatListItemLoading from "./chat-list-item-loading";
 
@@ -16,13 +16,40 @@ const ListChats = () => {
 
   useEffect(() => {
     if (xmtpClient) {
-      setLoading(true);
-      const consentStates = [ConsentState.Allowed];
+      console.log(xmtpClient.inboxId);
+    }
+  }, [xmtpClient]);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let streamController: AsyncIterator<any, any, any> | undefined;
+
+    if (xmtpClient) {
       (async () => {
-        const allDms = await xmtpClient.conversations.listDms({
-          consentStates,
+        streamController = await xmtpClient.conversations.stream<Dm<string>>({
+          onValue: (value) => {
+            setDms((prevDms) => [...prevDms, value]);
+          },
+          onError: (err) => {
+            console.error("Stream error:", err);
+          },
         });
-        setDms(allDms);
+      })();
+    }
+
+    return () => {
+      if (streamController && typeof streamController.return === "function") {
+        streamController.return();
+      }
+    };
+  }, [xmtpClient]);
+
+  useEffect(() => {
+    if (xmtpClient) {
+      setLoading(true);
+      (async () => {
+        const allDms = await xmtpClient.conversations.list();
+        setDms(allDms as Dm[]);
         setLoading(false);
       })();
     } else {

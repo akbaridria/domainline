@@ -1,15 +1,44 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useChatContext } from "./chat-message/context/chat-context";
 import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
 import { useSearchParams } from "react-router";
 import { useGetAllDomainsFromAddress } from "@/api/query";
-import { SUPPORTED_CHAINS } from "@/config";
-import { extractCAIP10, shortenAddress } from "@/lib/utils";
-import { ClockIcon, Globe2Icon, User2Icon, ZapIcon } from "lucide-react";
+import {
+  EXPIRATION_OPTIONS,
+  SUPPORTED_CHAINS,
+  SUPPORTED_CURRENCIES,
+} from "@/config";
+import { cn, extractCAIP10, shortenAddress } from "@/lib/utils";
+import {
+  CheckCircle2Icon,
+  ClockIcon,
+  Globe2Icon,
+  User2Icon,
+  ZapIcon,
+} from "lucide-react";
+import { InputWithSelect } from "./input-with-select";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Button } from "./ui/button";
+
+interface Domain {
+  name: string;
+  user: string;
+  network: string;
+  expiredAt: string;
+  tokenAddress: string;
+  tokenId: string;
+}
 
 const DialogSendOffer = () => {
   const { showOfferDialog, setShowOfferDialog } = useChatContext();
   const [searchParams] = useSearchParams();
+  const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const rAddress = useMemo(() => {
     return searchParams.get("sender");
   }, [searchParams]);
@@ -38,12 +67,12 @@ const DialogSendOffer = () => {
 
   return (
     <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader />
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="font-semibold">Select Domain</div>
-            <div className="p-4 bg-secondary rounded-lg">
+            <div className="p-4 border-dashed border-2 rounded-lg h-screen max-h-[400px] overflow-y-auto space-y-4">
               {listDomains.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center">
                   No domains found for this address.
@@ -52,7 +81,18 @@ const DialogSendOffer = () => {
               {listDomains.map((domain) => (
                 <div
                   key={domain.name}
-                  className="p-4 border rounded-lg bg-accent hover:bg-accent/50 transition-colors"
+                  className={cn(
+                    "p-4 border rounded-lg bg-accent hover:bg-accent/50 transition-colors cursor-pointer",
+                    selectedDomain?.name === domain.name &&
+                      "bg-accent/50 border-dashed"
+                  )}
+                  onClick={() => {
+                    if (selectedDomain?.name === domain.name) {
+                      setSelectedDomain(null);
+                    } else {
+                      setSelectedDomain(domain);
+                    }
+                  }}
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -62,12 +102,15 @@ const DialogSendOffer = () => {
                           {domain.name}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <ClockIcon size={14} />
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(domain.expiredAt).toLocaleDateString()}
-                        </span>
-                      </div>
+                      {selectedDomain?.name === domain.name && (
+                        <CheckCircle2Icon className="fill-green-600" />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ClockIcon size={16} />
+                      <span className="text-sm">
+                        {new Date(domain.expiredAt).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User2Icon size={16} />
@@ -84,7 +127,37 @@ const DialogSendOffer = () => {
               ))}
             </div>
           </div>
-          <div>this is offer form</div>
+          <div className="space-y-4">
+            <div className="font-semibold">Offer Details</div>
+            <div className="p-4 border-2 border-dashed rounded-lg">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Amount</div>
+                  <InputWithSelect
+                    inputProps={{ placeholder: "Enter price" }}
+                    selectProps={{ value: SUPPORTED_CURRENCIES[0].value }}
+                    selectOptions={SUPPORTED_CURRENCIES}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm font-medium">Expiration</div>
+                  <Select value="7">
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPIRATION_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <Button className="w-full mt-4">Send Offer</Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

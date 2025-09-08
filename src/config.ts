@@ -18,3 +18,22 @@ export const SUPPORTED_CHAINS = [
   sepolia,
   shibariumTestnet,
 ];
+
+export const SUPPORTED_CURRENCIES = [
+  {
+    value: "0x6f898cd313dcEe4D28A87F675BD93C471868B0Ac",
+    label: "WETH",
+  },
+  {
+    value: "0x2f3463756C59387D6Cd55b034100caf7ECfc757b",
+    label: "USDC",
+  },
+];
+
+export const EXPIRATION_OPTIONS = [
+  { label: "1 Day", value: "1" },
+  { label: "3 Days", value: "3" },
+  { label: "7 Days", value: "7" },
+  { label: "15 Days", value: "15" },
+  { label: "30 Days", value: "30" },
+];
