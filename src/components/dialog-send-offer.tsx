@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useChatContext } from "./chat-message/context/chat-context";
-import { Dialog, DialogContent, DialogHeader } from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useSearchParams } from "react-router";
 import { useGetAllDomainsFromAddress } from "@/api/query";
 import {
@@ -10,6 +10,7 @@ import {
 } from "@/config";
 import { cn, extractCAIP10, shortenAddress } from "@/lib/utils";
 import {
+  AlertCircleIcon,
   CheckCircle2Icon,
   ClockIcon,
   Globe2Icon,
@@ -25,6 +26,13 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Button } from "./ui/button";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import useCreateOffer from "@/hooks/useCreateOffer";
+import {
+  DomaOrderbookError,
+  DomaOrderbookErrorCode,
+} from "@doma-protocol/orderbook-sdk";
+import { useAccount } from "wagmi";
 
 interface Domain {
   name: string;
@@ -35,10 +43,25 @@ interface Domain {
   tokenId: string;
 }
 
-const DialogSendOffer = () => {
+interface DialogSendOfferProps {
+  callbackOnSuccess?: (content: string) => void;
+}
+
+const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
+  callbackOnSuccess,
+}) => {
+  const { address } = useAccount();
+  const [isLoadingOffer, setIsLoadingOffer] = useState(false);
   const { showOfferDialog, setShowOfferDialog } = useChatContext();
   const [searchParams] = useSearchParams();
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
+  const [formOffer, setFormOffer] = useState({
+    amount: "",
+    currency: SUPPORTED_CURRENCIES[1].value,
+    expiration: "7",
+  });
+  const { createOffer } = useCreateOffer();
+
   const rAddress = useMemo(() => {
     return searchParams.get("sender");
   }, [searchParams]);
@@ -65,14 +88,74 @@ const DialogSendOffer = () => {
     });
   }, [data]);
 
+  const handleSendOffer = useCallback(async () => {
+    try {
+      setIsLoadingOffer(true);
+      if (!selectedDomain) return;
+      if (!formOffer.amount) return;
+      const currencyName = SUPPORTED_CURRENCIES.find(
+        (c) => c.value === formOffer.currency
+      )?.label;
+      if (!currencyName) return;
+      const result = await createOffer(
+        selectedDomain?.tokenAddress || "",
+        selectedDomain?.tokenId || "",
+        formOffer.currency,
+        formOffer.amount,
+        Number(formOffer.expiration) * 24 * 60 * 60 * 1000,
+        () => {
+          setShowOfferDialog(false);
+          setSelectedDomain(null);
+          setFormOffer({
+            amount: "",
+            currency: SUPPORTED_CURRENCIES[1].value,
+            expiration: "7",
+          });
+        }
+      );
+      const expirationUnixSeconds = Math.floor(
+        (Date.now() + Number(formOffer.expiration) * 24 * 60 * 60 * 1000) / 1000
+      );
+      const contentMessage = `send_offer::${result?.orders?.[0]?.orderId}::${selectedDomain.name}::${currencyName}::${formOffer.amount}::${address}::${expirationUnixSeconds}`;
+      callbackOnSuccess?.(contentMessage);
+      setIsLoadingOffer(false);
+    } catch (error) {
+      setIsLoadingOffer(false);
+      if (error instanceof DomaOrderbookError) {
+        switch (error.code) {
+          case DomaOrderbookErrorCode.SIGNER_NOT_PROVIDED:
+            console.log("Please connect your wallet");
+            break;
+          case DomaOrderbookErrorCode.FETCH_FEES_FAILED:
+            console.log("Failed to fetch marketplace fees");
+            break;
+          case DomaOrderbookErrorCode.CLIENT_NOT_INITIALIZED:
+            console.log("SDK not initialized");
+            break;
+          default:
+            console.log("Unknown error:", error.message);
+        }
+      }
+    }
+  }, [
+    selectedDomain,
+    formOffer,
+    createOffer,
+    address,
+    callbackOnSuccess,
+    setShowOfferDialog,
+  ]);
+
   return (
     <Dialog open={showOfferDialog} onOpenChange={setShowOfferDialog}>
       <DialogContent className="sm:max-w-4xl">
-        <DialogHeader />
+        <DialogHeader>
+          <DialogTitle>Send Offers</DialogTitle>
+        </DialogHeader>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-4">
             <div className="font-semibold">Select Domain</div>
-            <div className="p-4 border-dashed border-2 rounded-lg h-screen max-h-[400px] overflow-y-auto space-y-4">
+            <div className="p-4 border-dashed border-2 rounded-lg max-h-[400px] overflow-y-auto space-y-4">
               {listDomains.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center">
                   No domains found for this address.
@@ -134,14 +217,31 @@ const DialogSendOffer = () => {
                 <div className="space-y-2">
                   <div className="text-sm font-medium">Amount</div>
                   <InputWithSelect
-                    inputProps={{ placeholder: "Enter price" }}
-                    selectProps={{ value: SUPPORTED_CURRENCIES[0].value }}
+                    inputProps={{
+                      placeholder: "Enter price",
+                      value: formOffer.amount,
+                      onChange: (e) =>
+                        setFormOffer((prev) => ({
+                          ...prev,
+                          amount: e.target.value,
+                        })),
+                    }}
+                    selectProps={{
+                      value: formOffer.currency,
+                      onValueChange: (value) =>
+                        setFormOffer((prev) => ({ ...prev, currency: value })),
+                    }}
                     selectOptions={SUPPORTED_CURRENCIES}
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="text-sm font-medium">Expiration</div>
-                  <Select value="7">
+                  <Select
+                    value={formOffer.expiration}
+                    onValueChange={(value) =>
+                      setFormOffer((prev) => ({ ...prev, expiration: value }))
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
@@ -155,7 +255,26 @@ const DialogSendOffer = () => {
                   </Select>
                 </div>
               </div>
-              <Button className="w-full mt-4">Send Offer</Button>
+              {(!selectedDomain || !formOffer.amount) && (
+                <Alert variant="destructive" className="mt-4">
+                  <AlertCircleIcon />
+                  <AlertTitle>Unable to process your offer.</AlertTitle>
+                  <AlertDescription>
+                    <p>Please complete below information</p>
+                    <ul className="list-inside list-disc text-sm">
+                      {!selectedDomain && <li>Selected Domain</li>}
+                      {!formOffer.amount && <li>Offer Amount</li>}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Button
+                className="w-full mt-4"
+                onClick={handleSendOffer}
+                disabled={isLoadingOffer}
+              >
+                {isLoadingOffer ? "Processing..." : "Send Offer"}
+              </Button>
             </div>
           </div>
         </div>

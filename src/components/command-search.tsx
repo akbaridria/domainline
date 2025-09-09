@@ -61,8 +61,6 @@ export function CommandSearch() {
     });
   }, [data, isError]);
 
-  console.log(debouncedSearchValue, "ini debounced");
-
   useEffect(() => {
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(() => {

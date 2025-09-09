@@ -1,37 +1,21 @@
 import {
-  createDomaOrderbookClient,
-  getDomaOrderbookClient,
   OrderbookType,
   viemToEthersSigner,
 } from "@doma-protocol/orderbook-sdk";
 import { useCallback } from "react";
-import { useMemo } from "react";
-import { SUPPORTED_CHAINS } from "@/config";
+import { DOMA_CONFIG_CLIENT, SUPPORTED_CURRENCIES } from "@/config";
 import { useWalletClient } from "wagmi";
 import { domaTestnet } from "@/custom-chains/doma-testnet";
-import { parseEther } from "viem";
+import { parseUnits } from "viem";
+import { toast } from "sonner";
+import { DomaOrderbookSDK } from "@/classes/doma-orderbook";
 
-const useDomaOrderbook = () => {
+const useCreateOffer = () => {
   const { data: walletClient } = useWalletClient();
-  const config = useMemo(
-    () => ({
-      apiClientOptions: {
-        baseUrl: "https://api-testnet.doma.xyz",
-        apiKey: import.meta.env.VITE_DOMA_API_KEY,
-      },
-      source: "domainLine",
-      chains: SUPPORTED_CHAINS,
-    }),
-    []
-  );
 
   const getDomaClient = useCallback(() => {
-    const client = getDomaOrderbookClient();
-    if (!client) {
-      return createDomaOrderbookClient(config);
-    }
-    return client;
-  }, [config]);
+    return new DomaOrderbookSDK(DOMA_CONFIG_CLIENT);
+  }, []);
 
   const createOffer = useCallback(
     async (
@@ -39,7 +23,8 @@ const useDomaOrderbook = () => {
       tokenId: string,
       currencyContractAddress: string,
       amount: string,
-      duration: number
+      duration: number,
+      callbackOnSuccess?: () => void
     ) => {
       if (!walletClient) return;
 
@@ -48,6 +33,10 @@ const useDomaOrderbook = () => {
       const signer = viemToEthersSigner(walletClient, chainId);
 
       const client = getDomaClient();
+
+      const isNativeToken =
+        SUPPORTED_CURRENCIES.find((c) => c.value === currencyContractAddress)
+          ?.label === "WETH";
 
       const result = await client.createOffer({
         signer,
@@ -60,13 +49,17 @@ const useDomaOrderbook = () => {
               contract: tokenAddress,
               tokenId,
               currencyContractAddress,
-              price: parseEther(amount).toString(),
+              price: parseUnits(amount, isNativeToken ? 18 : 6).toString(),
               duration,
             },
           ],
         },
         onProgress: (progress) => {
-          console.log("Offer creation status:", progress);
+          const isAllComplete = progress.every((p) => p.status === "complete");
+          if (isAllComplete) {
+            toast.success("Offer created successfully!");
+            callbackOnSuccess?.();
+          }
         },
       });
       return result;
@@ -79,4 +72,4 @@ const useDomaOrderbook = () => {
   };
 };
 
-export default useDomaOrderbook;
+export default useCreateOffer;

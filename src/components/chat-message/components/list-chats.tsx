@@ -15,12 +15,6 @@ const ListChats = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (xmtpClient) {
-      console.log(xmtpClient.inboxId);
-    }
-  }, [xmtpClient]);
-
-  useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let streamController: AsyncIterator<any, any, any> | undefined;
 

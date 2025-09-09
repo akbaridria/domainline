@@ -37,3 +37,14 @@ export const EXPIRATION_OPTIONS = [
   { label: "15 Days", value: "15" },
   { label: "30 Days", value: "30" },
 ];
+
+export const DOMA_CONFIG_CLIENT = {
+  apiClientOptions: {
+    baseUrl: "https://api-testnet.doma.xyz",
+    defaultHeaders: {
+      "Api-Key": import.meta.env.VITE_DOMA_API_KEY || "",
+    },
+  },
+  source: "domainLine",
+  chains: SUPPORTED_CHAINS,
+};

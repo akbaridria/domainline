@@ -2,7 +2,7 @@ import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
 import Avatar from "boring-avatars";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import type { Dm } from "@xmtp/browser-sdk";
+import type { DecodedMessage, Dm } from "@xmtp/browser-sdk";
 import useApp from "@/hooks/useApp";
 import ChatListItemLoading from "./chat-list-item-loading";
 import { shortenAddress } from "@/lib/utils";
@@ -19,6 +19,32 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ isLoading, dm }) => {
   const [userAddress, setUserAddress] = useState<string>("Unknown");
   const [latestMessage, setLatestMessage] = useState<string>("---");
 
+  const handleLatestMessage = useCallback(
+    (message: DecodedMessage) => {
+      if (message && typeof message.content === "string") {
+        const isCurrentUser = message.senderInboxId === xmtpClient?.inboxId;
+        if (isCurrentUser) {
+          if (message.content.split("::")[0] === "send_offer") {
+            setLatestMessage("💌 Sent an offer");
+          } else if (message.content.split("::")[0] === "accept_offer") {
+            setLatestMessage("🎉 Accepted an offer");
+          } else {
+            setLatestMessage(String(message.content));
+          }
+        } else {
+          if (message.content.split("::")[0] === "send_offer") {
+            setLatestMessage("💌 Received an offer");
+          } else if (message.content.split("::")[0] === "accept_offer") {
+            setLatestMessage("🎉 Accepted your offer");
+          } else {
+            setLatestMessage(String(message.content));
+          }
+        }
+      }
+    },
+    [xmtpClient?.inboxId]
+  );
+
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let streamController: AsyncIterator<any, any, any> | undefined;
@@ -27,9 +53,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ isLoading, dm }) => {
       (async () => {
         streamController = await dm.stream({
           onValue: (message) => {
-            if (message && typeof message.content === "string") {
-              setLatestMessage(String(message.content));
-            }
+            handleLatestMessage(message);
           },
           onError: (err) => {
             console.error("Stream error:", err);
@@ -43,7 +67,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ isLoading, dm }) => {
         streamController.return();
       }
     };
-  }, [dm]);
+  }, [dm, handleLatestMessage]);
 
   useEffect(() => {
     (async () => {
@@ -53,10 +77,10 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ isLoading, dm }) => {
         .find((msg) => typeof msg.content === "string");
 
       if (lastStringMessage) {
-        setLatestMessage(String(lastStringMessage.content));
+        handleLatestMessage(lastStringMessage);
       }
     })();
-  }, [dm]);
+  }, [dm, handleLatestMessage]);
 
   useEffect(() => {
     let isMounted = true;

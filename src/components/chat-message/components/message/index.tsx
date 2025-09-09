@@ -185,7 +185,7 @@ const MessageComponent = () => {
         </>
       )}
       {!isVisible && <DefaultScreen />}
-      <DialogSendOffer />
+      <DialogSendOffer callbackOnSuccess={handleSendMessage} />
     </div>
   );
 };
