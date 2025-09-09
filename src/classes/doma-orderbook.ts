@@ -1,14 +1,10 @@
 import {
-  AcceptOfferHandler,
   ApiClient,
-  CancelOfferHandler,
   DomaOrderbookError,
   DomaOrderbookErrorCode,
   type AcceptOfferParams,
   type AcceptOfferResult,
   type Caip2ChainId,
-  type CancelOfferParams,
-  type CancelOfferResult,
   type CreateListingParams,
   type CreateOfferParams,
   type CreateOfferResult,
@@ -23,6 +19,7 @@ import {
 import { JsonRpcSigner } from "ethers";
 import { CreateOfferHandler } from "./doma-create-offer";
 import { SUPPORTED_CURRENCIES } from "@/config";
+import { AcceptOfferHandler } from "./doma-accept-offer";
 
 export class DomaOrderbookSDK {
   public readonly config: DomaOrderbookSDKConfig;
@@ -135,30 +132,6 @@ export class DomaOrderbookSDK {
     this.validateSignerAndChainProvided(signer, chainId);
 
     const handler = new AcceptOfferHandler(
-      this.config,
-      this.apiClient,
-      signer,
-      chainId,
-      onProgress
-    );
-
-    return handler.execute(params);
-  }
-
-  public async cancelOffer({
-    params,
-    signer,
-    chainId,
-    onProgress,
-  }: {
-    params: CancelOfferParams;
-    signer: JsonRpcSigner;
-    chainId: Caip2ChainId;
-    onProgress: OnProgressCallback;
-  }): Promise<CancelOfferResult> {
-    this.validateSignerAndChainProvided(signer, chainId);
-
-    const handler = new CancelOfferHandler(
       this.config,
       this.apiClient,
       signer,

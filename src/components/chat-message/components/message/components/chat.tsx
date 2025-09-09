@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button";
 import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
 import Avatar from "boring-avatars";
 import { TimerIcon } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { formatDistanceToNow } from "date-fns";
+import useAcceptOffer from "@/hooks/useAcceptOffer";
+import { toast } from "sonner";
 
 interface ChatProps {
   message: Message;
+  handleSendMessage?: (content: string) => void;
 }
 
 interface ChatWrapperProps {
@@ -50,8 +53,47 @@ const ChatWrapper = ({
   );
 };
 
-const OfferChat: React.FC<ChatProps> = ({ message }) => {
+const AcceptOfferChat: React.FC<ChatProps> = ({ message }) => {
   const { address } = useAccount();
+  const parts = message.content.split("::");
+  const domainName = parts[2];
+  const currency = parts[3];
+  const amount = parts[4];
+  const acceptorAddress = parts[5];
+
+  const isCurrentUser = useMemo(() => {
+    return acceptorAddress?.toLowerCase() === address?.toLowerCase();
+  }, [acceptorAddress, address]);
+
+  return (
+    <ChatWrapper isCurrentUser={isCurrentUser} message={message}>
+      <div
+        className={`space-y-2 p-4 border-2 rounded-lg border-dashed ${
+          isCurrentUser
+            ? "bg-primary text-primary-foreground border-accent"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        <div className="text-sm">
+          {isCurrentUser
+            ? "✅ You accepted the offer for"
+            : "✅ Offer accepted for"}
+        </div>
+        <div className="space-y-1">
+          <div className="font-semibold text-lg">{domainName}</div>
+          <div>
+            <span className="font-semibold text-4xl">{amount}</span>{" "}
+            <span className="text-xs">{currency}</span>
+          </div>
+        </div>
+      </div>
+    </ChatWrapper>
+  );
+};
+
+const OfferChat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
+  const { address } = useAccount();
+  const [isLoading, setIsLoading] = useState(false);
   const parts = message.content.split("::");
   const orderId = parts[1];
   const domainName = parts[2];
@@ -66,9 +108,30 @@ const OfferChat: React.FC<ChatProps> = ({ message }) => {
   const ownedByCurrentUser =
     offererAddress.toLowerCase() === address?.toLowerCase();
 
-  const handleAcceptOffer = useCallback(() => {
-    console.log(orderId, "orderId");
-  }, [orderId]);
+  const { acceptOffer } = useAcceptOffer();
+
+  const handleAcceptOffer = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      await acceptOffer(orderId, () => {
+        handleSendMessage?.(
+          `accept_offer::${orderId}::${domainName}::${currency}::${amount}::${address}`
+        );
+      });
+    } catch (err) {
+      toast.error("Failed to accept offer");
+      console.log(err);
+      setIsLoading(false);
+    }
+  }, [
+    acceptOffer,
+    address,
+    amount,
+    currency,
+    domainName,
+    handleSendMessage,
+    orderId,
+  ]);
 
   return (
     <ChatWrapper message={message} isCurrentUser={ownedByCurrentUser}>
@@ -100,7 +163,7 @@ const OfferChat: React.FC<ChatProps> = ({ message }) => {
         </div>
         {!ownedByCurrentUser && (
           <Button
-            disabled={isExpired}
+            disabled={isExpired || isLoading}
             className="w-full"
             onClick={handleAcceptOffer}
           >
@@ -112,7 +175,7 @@ const OfferChat: React.FC<ChatProps> = ({ message }) => {
   );
 };
 
-const Chat: React.FC<ChatProps> = ({ message }) => {
+const Chat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
   const { address } = useAccount();
   const isCurrentUser = useMemo(() => {
     return message.sender === address;
@@ -126,7 +189,20 @@ const Chat: React.FC<ChatProps> = ({ message }) => {
     return true;
   }, [message]);
 
-  if (isOfferChat) return <OfferChat message={message} />;
+  const isAcceptOfferChat = useMemo(() => {
+    if (typeof message.content !== "string") return false;
+    const parts = message.content.split("::");
+    if (parts.length !== 6) return false;
+    if (parts[0] !== "accept_offer") return false;
+    return true;
+  }, [message]);
+
+  if (isAcceptOfferChat) return <AcceptOfferChat message={message} />;
+
+  if (isOfferChat)
+    return (
+      <OfferChat message={message} handleSendMessage={handleSendMessage} />
+    );
 
   return (
     <ChatWrapper isCurrentUser={isCurrentUser} message={message}>

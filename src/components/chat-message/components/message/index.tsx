@@ -169,7 +169,11 @@ const MessageComponent = () => {
                     })}
                   </div>
                   {msgs.map((msg) => (
-                    <Chat key={msg.id} message={msg} />
+                    <Chat
+                      key={msg.id}
+                      message={msg}
+                      handleSendMessage={handleSendMessage}
+                    />
                   ))}
                 </div>
               ))}

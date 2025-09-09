@@ -33,6 +33,7 @@ import {
   DomaOrderbookErrorCode,
 } from "@doma-protocol/orderbook-sdk";
 import { useAccount } from "wagmi";
+import { toast } from "sonner";
 
 interface Domain {
   name: string;
@@ -121,6 +122,7 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
       setIsLoadingOffer(false);
     } catch (error) {
       setIsLoadingOffer(false);
+      toast.error("Failed to send offer");
       if (error instanceof DomaOrderbookError) {
         switch (error.code) {
           case DomaOrderbookErrorCode.SIGNER_NOT_PROVIDED:
@@ -271,7 +273,7 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
               <Button
                 className="w-full mt-4"
                 onClick={handleSendOffer}
-                disabled={isLoadingOffer}
+                disabled={isLoadingOffer || !selectedDomain || !formOffer.amount}
               >
                 {isLoadingOffer ? "Processing..." : "Send Offer"}
               </Button>
