@@ -31,12 +31,14 @@ const useXmtp = () => {
     if (!address) return;
     setIsLoadingXmtp(true);
     try {
-      const existingClient = await Client.build(
+      const canMessage = await Client.canMessage([
         { identifier: address as string, identifierKind: "Ethereum" },
-        { env: "dev" }
-      );
-      if (existingClient) {
-        console.log("Reusing existing XMTP client");
+      ]);
+      if (canMessage.get(address as string)) {
+        const existingClient = await Client.build(
+          { identifier: address as string, identifierKind: "Ethereum" },
+          { env: "dev" }
+        );
         setXmtpClient(existingClient);
       } else {
         const newClient = await Client.create(signer, { env: "dev" });
