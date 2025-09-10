@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toBytes } from "viem";
 import { useAccount, useSignMessage } from "wagmi";
 import useApp from "./useApp";
+import { toast } from "sonner";
 
 const useXmtp = () => {
   const [isLoadingXmtp, setIsLoadingXmtp] = useState(false);
@@ -33,11 +34,15 @@ const useXmtp = () => {
         .then((res) => {
           setXmtpClient(res);
         })
-        .catch(() => {})
+        .catch((err) => {
+          console.log("Failed to create XMTP client", err);
+          toast.error("Failed to connect to XMTP");
+        })
         .finally(() => {
           setIsLoadingXmtp(false);
         });
     } catch (error) {
+      toast.error("Failed to create XMTP client");
       console.error("Failed to create XMTP client:", error);
     }
   }, [setXmtpClient, signer]);
