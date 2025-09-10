@@ -31,9 +31,18 @@ const useXmtp = () => {
     if (!address) return;
     setIsLoadingXmtp(true);
     try {
-      const newClient = await Client.create(signer, { env: "dev" });
-      console.log("Created new XMTP client");
-      setXmtpClient(newClient);
+      const existingClient = await Client.build(
+        { identifier: address as string, identifierKind: "Ethereum" },
+        { env: "dev" }
+      );
+      if (existingClient) {
+        console.log("Reusing existing XMTP client");
+        setXmtpClient(existingClient);
+      } else {
+        const newClient = await Client.create(signer, { env: "dev" });
+        console.log("Created new XMTP client");
+        setXmtpClient(newClient);
+      }
     } catch (err) {
       console.error("Failed to connect to XMTP:", err);
       toast.error("Failed to connect to XMTP");

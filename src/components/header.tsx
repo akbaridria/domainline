@@ -80,9 +80,15 @@ const Header = () => {
           <CommandSearch />
         </div>
         <div className="flex items-center gap-2">
-          <Button size="icon" variant="ghost">
-            <GithubIcon />
-          </Button>
+          <a
+            href="https://github.com/akbaridria/domainline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button size="icon" variant="ghost">
+              <GithubIcon />
+            </Button>
+          </a>
           <ToggleTheme />
           <Separator orientation="vertical" className="min-h-4 min-w-0.5" />
           <DropdownMenu>
