@@ -27,25 +27,29 @@ const useXmtp = () => {
     };
   }, [address, signMessageAsync]);
 
-  const connectXmtp = useCallback(() => {
+  const connectXmtp = useCallback(async () => {
+    if (!address) return;
+    setIsLoadingXmtp(true);
     try {
-      setIsLoadingXmtp(true);
-      Client.create(signer, { env: "dev" })
-        .then((res) => {
-          setXmtpClient(res);
-        })
-        .catch((err) => {
-          console.log("Failed to create XMTP client", err);
-          toast.error("Failed to connect to XMTP");
-        })
-        .finally(() => {
-          setIsLoadingXmtp(false);
-        });
-    } catch (error) {
-      toast.error("Failed to create XMTP client");
-      console.error("Failed to create XMTP client:", error);
+      const existingClient = await Client.build(
+        { identifier: address as string, identifierKind: "Ethereum" },
+        { env: "dev" }
+      );
+      if (existingClient) {
+        console.log("Reusing existing XMTP client");
+        setXmtpClient(existingClient);
+      } else {
+        const newClient = await Client.create(signer, { env: "dev" });
+        console.log("Created new XMTP client");
+        setXmtpClient(newClient);
+      }
+    } catch (err) {
+      console.error("Failed to connect to XMTP:", err);
+      toast.error("Failed to connect to XMTP");
+    } finally {
+      setIsLoadingXmtp(false);
     }
-  }, [setXmtpClient, signer]);
+  }, [address, setXmtpClient, signer]);
 
   useEffect(() => {
     if (!address) {
