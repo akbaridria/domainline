@@ -9,5 +9,13 @@ export interface DomainName {
     networkId: string;
     tokenAddress: string;
     tokenId: string;
+    listings: {
+      price: string;
+      currency: {
+        decimals: number;
+        name: string;
+        symbol: string;
+      };
+    }[];
   }[];
 }

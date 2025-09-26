@@ -1,6 +1,6 @@
 import type { Message } from "@/components/chat-message/types";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_COLORS_BORING_AVATAR } from "@/config";
+import { DEFAULT_COLORS_BORING_AVATAR, SUPPORTED_CHAINS } from "@/config";
 import Avatar from "boring-avatars";
 import { TimerIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -100,6 +100,7 @@ const OfferChat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
   const currency = parts[3];
   const amount = parts[4];
   const offererAddress = parts[5];
+  const networkName = parts[7];
   const expirationUnixSeconds = parseInt(parts[6], 10) * 1000; // Convert to milliseconds
   const timeDifference = formatDistanceToNow(expirationUnixSeconds, {
     addSuffix: true,
@@ -113,7 +114,10 @@ const OfferChat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
   const handleAcceptOffer = useCallback(async () => {
     try {
       setIsLoading(true);
-      await acceptOffer(orderId, () => {
+      const networkID = SUPPORTED_CHAINS.find(
+        (c) => c.name === networkName
+      )?.id;
+      await acceptOffer(orderId, networkID, () => {
         handleSendMessage?.(
           `accept_offer::${orderId}::${domainName}::${currency}::${amount}::${address}`
         );
@@ -130,6 +134,7 @@ const OfferChat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
     currency,
     domainName,
     handleSendMessage,
+    networkName,
     orderId,
   ]);
 
@@ -184,7 +189,7 @@ const Chat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
   const isOfferChat = useMemo(() => {
     if (typeof message.content !== "string") return false;
     const parts = message.content.split("::");
-    if (parts.length !== 7) return false;
+    if (parts.length !== 8) return false;
     if (parts[0] !== "send_offer") return false;
     return true;
   }, [message]);

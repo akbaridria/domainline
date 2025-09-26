@@ -7,6 +7,7 @@ import {
   User,
   Globe,
   Loader2,
+  CoinsIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,12 +22,14 @@ import { extractCAIP10 } from "@/lib/utils";
 import useApp from "@/hooks/useApp";
 import { SUPPORTED_CHAINS } from "@/config";
 import DialogCheckingDM from "./dialog-checking-dm";
+import { formatUnits } from "viem";
 
 interface Web3Domain {
   domainName: string;
   owner: string;
   expired_at: Date;
   network: string;
+  listPrice?: string;
 }
 
 export function CommandSearch() {
@@ -52,11 +55,20 @@ export function CommandSearch() {
       const networkName =
         SUPPORTED_CHAINS.find((chain) => chain.id === caip10?.networkId)
           ?.name || "Unknown";
+      const currencyName = domain.tokens?.[0]?.listings?.[0]?.currency?.symbol;
+      const listPrice = domain.tokens?.[0]?.listings?.[0]?.price
+        ? formatUnits(
+            BigInt(domain.tokens?.[0]?.listings?.[0]?.price),
+            currencyName === "ETH" ? 18 : 6
+          )
+        : undefined;
+
       return {
         domainName: domain.name,
         owner: caip10?.accountAddress || "Unknown",
         network: networkName,
         expired_at: new Date(domain.expiresAt),
+        listPrice: listPrice ? `${listPrice} ${currencyName}` : undefined,
       } as Web3Domain;
     });
   }, [data, isError]);
@@ -188,6 +200,12 @@ export function CommandSearch() {
                           <Clock className="h-3 w-3" />
                           <span>{domain.expired_at.toLocaleDateString()}</span>
                         </div>
+                        {domain?.listPrice && (
+                          <div className="flex items-center gap-1">
+                            <CoinsIcon className="h-3 w-3" />
+                            <span>{domain?.listPrice}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

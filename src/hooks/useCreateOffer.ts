@@ -3,19 +3,15 @@ import {
   viemToEthersSigner,
 } from "@doma-protocol/orderbook-sdk";
 import { useCallback } from "react";
-import { DOMA_CONFIG_CLIENT, SUPPORTED_CURRENCIES } from "@/config";
+import { SUPPORTED_CURRENCIES } from "@/config";
 import { useWalletClient } from "wagmi";
 import { domaTestnet } from "@/custom-chains/doma-testnet";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
-import { DomaOrderbookSDK } from "@/classes/doma-orderbook";
+import { getDomaClient } from "@/lib/doma-client";
 
 const useCreateOffer = () => {
   const { data: walletClient } = useWalletClient();
-
-  const getDomaClient = useCallback(() => {
-    return new DomaOrderbookSDK(DOMA_CONFIG_CLIENT);
-  }, []);
 
   const createOffer = useCallback(
     async (
@@ -24,11 +20,12 @@ const useCreateOffer = () => {
       currencyContractAddress: string,
       amount: string,
       duration: number,
+      chainID?: number,
       callbackOnSuccess?: () => void
     ) => {
       if (!walletClient) return;
 
-      const chainId = `eip155:${domaTestnet.id}` as const;
+      const chainId = `eip155:${chainID || domaTestnet.id}` as const;
 
       const signer = viemToEthersSigner(walletClient, chainId);
 
@@ -64,7 +61,7 @@ const useCreateOffer = () => {
       });
       return result;
     },
-    [getDomaClient, walletClient]
+    [walletClient]
   );
 
   return {

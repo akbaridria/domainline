@@ -32,7 +32,7 @@ import {
   DomaOrderbookError,
   DomaOrderbookErrorCode,
 } from "@doma-protocol/orderbook-sdk";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { toast } from "sonner";
 
 interface Domain {
@@ -51,9 +51,12 @@ interface DialogSendOfferProps {
 const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
   callbackOnSuccess,
 }) => {
+  const chainID = useChainId();
   const { address } = useAccount();
-  const [isLoadingOffer, setIsLoadingOffer] = useState(false);
   const { showOfferDialog, setShowOfferDialog } = useChatContext();
+  const { createOffer } = useCreateOffer();
+  
+  const [isLoadingOffer, setIsLoadingOffer] = useState(false);
   const [searchParams] = useSearchParams();
   const [selectedDomain, setSelectedDomain] = useState<Domain | null>(null);
   const [formOffer, setFormOffer] = useState({
@@ -61,14 +64,14 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
     currency: SUPPORTED_CURRENCIES[1].value,
     expiration: "7",
   });
-  const { createOffer } = useCreateOffer();
 
   const rAddress = useMemo(() => {
-    return searchParams.get("sender");
-  }, [searchParams]);
-  const { data } = useGetAllDomainsFromAddress(
-    rAddress ? `eip155:97476:${rAddress}` : ""
-  );
+    const sender = searchParams.get("sender");
+    if (sender) return `eip155:${chainID}:${sender}`;
+    return "";
+  }, [chainID, searchParams]);
+
+  const { data } = useGetAllDomainsFromAddress(rAddress);
 
   const listDomains = useMemo(() => {
     if (!data) return [];
@@ -98,12 +101,16 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
         (c) => c.value === formOffer.currency
       )?.label;
       if (!currencyName) return;
+      const networkId = SUPPORTED_CHAINS.find(
+        (c) => c.name === selectedDomain.network
+      )?.id;
       const result = await createOffer(
         selectedDomain?.tokenAddress || "",
         selectedDomain?.tokenId || "",
         formOffer.currency,
         formOffer.amount,
         Number(formOffer.expiration) * 24 * 60 * 60 * 1000,
+        networkId,
         () => {
           setShowOfferDialog(false);
           setSelectedDomain(null);
@@ -117,7 +124,7 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
       const expirationUnixSeconds = Math.floor(
         (Date.now() + Number(formOffer.expiration) * 24 * 60 * 60 * 1000) / 1000
       );
-      const contentMessage = `send_offer::${result?.orders?.[0]?.orderId}::${selectedDomain.name}::${currencyName}::${formOffer.amount}::${address}::${expirationUnixSeconds}`;
+      const contentMessage = `send_offer::${result?.orders?.[0]?.orderId}::${selectedDomain.name}::${currencyName}::${formOffer.amount}::${address}::${expirationUnixSeconds}::${selectedDomain.network}`;
       callbackOnSuccess?.(contentMessage);
       setIsLoadingOffer(false);
     } catch (error) {
@@ -273,7 +280,9 @@ const DialogSendOffer: React.FC<DialogSendOfferProps> = ({
               <Button
                 className="w-full mt-4"
                 onClick={handleSendOffer}
-                disabled={isLoadingOffer || !selectedDomain || !formOffer.amount}
+                disabled={
+                  isLoadingOffer || !selectedDomain || !formOffer.amount
+                }
               >
                 {isLoadingOffer ? "Processing..." : "Send Offer"}
               </Button>

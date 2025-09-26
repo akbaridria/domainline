@@ -144,10 +144,10 @@
     viem "^2.27.2"
     zustand "5.0.3"
 
-"@doma-protocol/orderbook-sdk@0.1.3":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@doma-protocol/orderbook-sdk/-/orderbook-sdk-0.1.3.tgz#948e9f93580a501e5a203329c303778984ef663e"
-  integrity sha512-7OcnliF6JKvRdP47iZktqtTOUlzbr3+efuHWQfPBIznf+KqJ+tqtB+b0bPEVIvzNpblch6TOLetZEf2EKRhnqw==
+"@doma-protocol/orderbook-sdk@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@doma-protocol/orderbook-sdk/-/orderbook-sdk-0.1.4.tgz#55c59c28a39a885f9e29e91bee469e9a2cb0fe78"
+  integrity sha512-ITs0fLZwqinC3uoLB/kTuaeu/aBXZT5GWf4DlLxlDUVEIqPI1jDWvmZq1zSbq4MKQTNqZKC1K3AZYXVAz+KC9g==
   dependencies:
     "@opensea/seaport-js" "^4.0.4"
     axios "^1.9.0"

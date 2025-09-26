@@ -17,6 +17,15 @@ const fetchDomains = async (name: string) => {
                             networkId
                             tokenAddress
                             tokenId
+                            listings {
+                                price
+                                currency {
+                                    decimals
+                                    name
+                                    symbol
+                                    usdExchangeRate
+                                }
+                            }
                         }
                     }
                 }
@@ -43,6 +52,15 @@ const fetchAllDomainsFromAddress = async (address: string) => {
                             networkId
                             tokenAddress
                             tokenId
+                            listings {
+                                price
+                                currency {
+                                    decimals
+                                    name
+                                    symbol
+                                    usdExchangeRate
+                                }
+                            }
                         }
                     }
                 }
