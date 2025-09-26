@@ -43,7 +43,7 @@ const ListChats = () => {
       setLoading(true);
       (async () => {
         const allDms = await xmtpClient.conversations.list();
-        setDms(allDms as Dm[]);
+        setDms(allDms?.filter((item) => item.isActive) as Dm[]);
         setLoading(false);
       })();
     } else {

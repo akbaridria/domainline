@@ -31,9 +31,15 @@ const DialogCheckingDM: React.FC<DialogCheckingDMProps> = ({
       };
       const inboxId = await xmtpClient?.findInboxIdByIdentifier(identifier);
       if (inboxId) {
-        const conversation = await xmtpClient?.conversations.newDm(
-          inboxId || ""
+        const conversation = await xmtpClient?.conversations.getDmByInboxId(
+          inboxId
         );
+        if (!conversation) {
+          const conversation = await xmtpClient?.conversations.newGroup([
+            inboxId,
+          ]);
+          navigate(`?dm=${conversation?.id}&sender=${userAddress}`);
+        }
         onOpenChange(false);
         navigate(`?dm=${conversation?.id}&sender=${userAddress}`);
       } else {
