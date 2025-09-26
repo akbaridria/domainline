@@ -142,7 +142,7 @@ const MessageComponent = () => {
   return (
     <div
       className={cn(
-        "relative flex-1 border p-4 rounded-xl bg-white dark:bg-background transition-all w-full max-h-[calc(100%_-_var(--spacing)*2)] max-w-[calc(100%_-_416px)]",
+        "relative flex-1 border p-4 rounded-xl bg-white dark:bg-background transition-all min-w-full md:min-w-fit max-h-[calc(100%_-_var(--spacing)*2)] max-w-[calc(100%_-_416px)]",
         showChat ? "block" : "hidden md:block"
       )}
     >
