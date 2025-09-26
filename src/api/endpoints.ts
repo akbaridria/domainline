@@ -19,6 +19,9 @@ const fetchDomains = async (name: string) => {
                             tokenId
                             listings {
                                 price
+                                id
+                                externalId
+                                expiresAt
                                 currency {
                                     decimals
                                     name
@@ -54,6 +57,9 @@ const fetchAllDomainsFromAddress = async (address: string) => {
                             tokenId
                             listings {
                                 price
+                                id
+                                externalId
+                                expiresAt
                                 currency {
                                     decimals
                                     name

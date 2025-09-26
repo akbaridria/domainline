@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { formatDistanceToNow } from "date-fns";
 import useAcceptOffer from "@/hooks/useAcceptOffer";
 import { toast } from "sonner";
+import useBuyListing from "@/hooks/useBuyListing";
 
 interface ChatProps {
   message: Message;
@@ -50,6 +51,87 @@ const ChatWrapper = ({
         />
       )}
     </div>
+  );
+};
+
+const OfferDomainChat: React.FC<ChatProps> = ({
+  message,
+  handleSendMessage,
+}) => {
+  const { address } = useAccount();
+  const [isLoading, setIsLoading] = useState(false);
+  const { buyListing } = useBuyListing();
+
+  const parts = message.content.split("::");
+  const domainName = parts[1];
+  const owner = parts[2];
+  const network = parts[3];
+  const price = parts[4];
+  const listingId = parts[5];
+  const listingExpiresAt = parts[6];
+
+  const [amount, currency] = price.split(" ");
+
+  const isOwnedByCurrentUser = address?.toLowerCase() === owner?.toLowerCase();
+  const expirationUnixSeconds = new Date(listingExpiresAt).getTime();
+  const timeDifference = formatDistanceToNow(expirationUnixSeconds, {
+    addSuffix: true,
+  });
+  const isExpired = Date.now() > expirationUnixSeconds;
+
+  const handleBuy = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const networkID = SUPPORTED_CHAINS.find((c) => c.name === network)?.id;
+      await buyListing(listingId, networkID, () => {
+        handleSendMessage?.(`offer_domain_accept::${domainName}::${price}`);
+      });
+      setIsLoading(false);
+    } catch (err) {
+      toast.error("Failed to buy domain");
+      console.log(err);
+      setIsLoading(false);
+    }
+  }, [buyListing, listingId, network, handleSendMessage, domainName, price]);
+
+  return (
+    <ChatWrapper isCurrentUser={isOwnedByCurrentUser} message={message}>
+      <div
+        className={`space-y-2 p-4 border-2 rounded-lg border-dashed ${
+          isOwnedByCurrentUser
+            ? "bg-primary text-primary-foreground border-accent"
+            : "bg-muted text-muted-foreground"
+        }`}
+      >
+        <div className="text-sm">
+          {isOwnedByCurrentUser
+            ? "🪪 You offered your domain"
+            : "🌐 Domain available for purchase"}
+        </div>
+        <div className="space-y-1">
+          <div className="font-semibold text-lg">{domainName}</div>
+          <div>
+            <span className="font-semibold text-4xl">{amount}</span>{" "}
+            <span className="text-xs">{currency}</span>
+          </div>
+          <div className="pb-2">
+            <div className="flex items-center gap-0.5 text-xs">
+              <TimerIcon size={12} />
+              {!isExpired && <div>Listing expires {timeDifference}</div>}
+              {isExpired && <div>Listing expired</div>}
+            </div>
+          </div>
+        </div>
+        {!isOwnedByCurrentUser && !isExpired && (
+          <Button className="w-full" disabled={isLoading} onClick={handleBuy}>
+            {isLoading ? "Processing..." : "Buy Domain"}
+          </Button>
+        )}
+        {isExpired && (
+          <div className="text-xs text-red-500">Listing expired</div>
+        )}
+      </div>
+    </ChatWrapper>
   );
 };
 
@@ -202,12 +284,55 @@ const Chat: React.FC<ChatProps> = ({ message, handleSendMessage }) => {
     return true;
   }, [message]);
 
-  if (isAcceptOfferChat) return <AcceptOfferChat message={message} />;
+  const isOfferDomainChat = useMemo(() => {
+    if (typeof message.content !== "string") return false;
+    const parts = message.content.split("::");
+    if (parts.length !== 7) return false;
+    if (parts[0] !== "offer_domain") return false;
+    return true;
+  }, [message]);
 
+  const isOfferDomainAcceptChat = useMemo(() => {
+    if (typeof message.content !== "string") return false;
+    const parts = message.content.split("::");
+    if (parts.length !== 3) return false;
+    if (parts[0] !== "offer_domain_accept") return false;
+    return true;
+  }, [message]);
+
+  if (isAcceptOfferChat) return <AcceptOfferChat message={message} />;
   if (isOfferChat)
     return (
       <OfferChat message={message} handleSendMessage={handleSendMessage} />
     );
+  if (isOfferDomainChat)
+    return (
+      <OfferDomainChat
+        message={message}
+        handleSendMessage={handleSendMessage}
+      />
+    );
+  if (isOfferDomainAcceptChat) {
+    const parts = message.content.split("::");
+    const domainName = parts[1];
+    const price = parts[2];
+    return (
+      <ChatWrapper isCurrentUser={isCurrentUser} message={message}>
+        <div
+          className={`space-y-2 p-4 border-2 rounded-lg border-dashed ${
+            isCurrentUser
+              ? "bg-primary text-primary-foreground border-accent"
+              : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <div className="text-sm">
+            🎉 Domain <span className="font-semibold">{domainName}</span>{" "}
+            purchased for <span className="font-semibold">{price}</span>
+          </div>
+        </div>
+      </ChatWrapper>
+    );
+  }
 
   return (
     <ChatWrapper isCurrentUser={isCurrentUser} message={message}>

@@ -11,6 +11,9 @@ export interface DomainName {
     tokenId: string;
     listings: {
       price: string;
+      id: string;
+      expiresAt: string;
+      externalId: string;
       currency: {
         decimals: number;
         name: string;

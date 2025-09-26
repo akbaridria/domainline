@@ -14,6 +14,7 @@ import {
   ForwardIcon,
   LogOutIcon,
   RotateCcwIcon,
+  UploadIcon,
   User2Icon,
 } from "lucide-react";
 import { useCallback, useMemo } from "react";
@@ -22,7 +23,7 @@ import { useNavigate, useSearchParams } from "react-router";
 const HeaderChat = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { setIsSyncingMessages, setShowOfferDialog } = useChatContext();
+  const { setIsSyncingMessages, setShowOfferDialog, setShowMyDomainsDialog } = useChatContext();
   const { setIsOpenProfile, setSelectedProfile } = useApp();
 
   const user = useMemo(
@@ -69,6 +70,18 @@ const HeaderChat = () => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>View Profile</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowMyDomainsDialog(true)}
+            >
+              <UploadIcon />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Offer your domain</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>

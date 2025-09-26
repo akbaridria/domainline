@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import {
   Check,
   ClockIcon,
+  CoinsIcon,
   Copy,
   Globe2Icon,
   User2Icon,
@@ -18,6 +19,7 @@ import { useCallback, useMemo } from "react";
 import { useGetAllDomainsFromAddress } from "@/api/query";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
+import { formatUnits } from "viem";
 
 const DialogProfile: React.FC = () => {
   const { copied, handleCopyClipboard } = useCopyClipboard();
@@ -34,11 +36,20 @@ const DialogProfile: React.FC = () => {
         SUPPORTED_CHAINS.find(
           (chain) => chain.id === caip10Extracted?.networkId
         )?.name || "Unknown";
+      const price = domain?.tokens?.[0]?.listings?.[0]?.price;
+      const currency = domain?.tokens?.[0]?.listings?.[0]?.currency?.symbol;
+      const listingPrice = price
+        ? `${formatUnits(
+            BigInt(price),
+            currency === "ETH" ? 18 : 6
+          )} ${currency}`
+        : null;
       return {
         name: domain.name,
         user: caip10Extracted?.accountAddress || "Unknown",
         network: networkName,
         expiredAt: domain.expiresAt,
+        listingPrice,
       };
     });
   }, [data]);
@@ -113,6 +124,12 @@ const DialogProfile: React.FC = () => {
                             {shortenAddress(domain.user, 6, 4)}
                           </div>
                         </div>
+                        {domain.listingPrice && (
+                          <div className="flex items-center gap-2">
+                            <CoinsIcon size={16} />
+                            <div className="text-sm">{domain.listingPrice}</div>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2">
                           <ZapIcon size={16} />
                           <div className="text-sm">{domain.network}</div>

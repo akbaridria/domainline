@@ -22,20 +22,29 @@ const ChatListItem: React.FC<ChatListItemProps> = ({ isLoading, dm }) => {
   const handleLatestMessage = useCallback(
     (message: DecodedMessage) => {
       if (message && typeof message.content === "string") {
+        const type = message.content.split("::")[0];
         const isCurrentUser = message.senderInboxId === xmtpClient?.inboxId;
         if (isCurrentUser) {
-          if (message.content.split("::")[0] === "send_offer") {
+          if (type === "send_offer") {
             setLatestMessage("💌 Sent an offer");
-          } else if (message.content.split("::")[0] === "accept_offer") {
+          } else if (type === "accept_offer") {
             setLatestMessage("🎉 Accepted an offer");
+          } else if (type === "offer_domain") {
+            setLatestMessage("🌐 Sent a domain listing");
+          } else if (type === "offer_domain_accept") {
+            setLatestMessage("🎉 Accepted your domain listing");
           } else {
             setLatestMessage(String(message.content));
           }
         } else {
-          if (message.content.split("::")[0] === "send_offer") {
+          if (type === "send_offer") {
             setLatestMessage("💌 Received an offer");
-          } else if (message.content.split("::")[0] === "accept_offer") {
+          } else if (type === "accept_offer") {
             setLatestMessage("🎉 Accepted your offer");
+          } else if (type === "offer_domain") {
+            setLatestMessage("🌐 Received a domain listing");
+          } else if (type === "offer_domain_accept") {
+            setLatestMessage("🎉 Accepted your domain listing");
           } else {
             setLatestMessage(String(message.content));
           }

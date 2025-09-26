@@ -13,6 +13,7 @@ import DefaultScreen from "./components/default-screen";
 import { toast } from "sonner";
 import { Loader } from "lucide-react";
 import DialogSendOffer from "@/components/dialog-send-offer";
+import DialogMyDomains from "@/components/dialog-my-domains";
 
 const MessageComponent = () => {
   const [searchParams] = useSearchParams();
@@ -190,6 +191,7 @@ const MessageComponent = () => {
       )}
       {!isVisible && <DefaultScreen />}
       <DialogSendOffer callbackOnSuccess={handleSendMessage} />
+      <DialogMyDomains onSendMessage={handleSendMessage} />
     </div>
   );
 };

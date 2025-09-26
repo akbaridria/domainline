@@ -15,6 +15,8 @@ interface ChatContextType {
   setIsSyncingMessages: Dispatch<SetStateAction<boolean>>;
   showOfferDialog: boolean;
   setShowOfferDialog: Dispatch<SetStateAction<boolean>>;
+  showMyDomainsDialog: boolean;
+  setShowMyDomainsDialog: Dispatch<SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [showChat, setShowChat] = useState(false);
   const [isSyncingMessages, setIsSyncingMessages] = useState(false);
   const [showOfferDialog, setShowOfferDialog] = useState(false);
+  const [showMyDomainsDialog, setShowMyDomainsDialog] = useState(false);
 
   return (
     <ChatContext.Provider
@@ -33,6 +36,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setIsSyncingMessages,
         showOfferDialog,
         setShowOfferDialog,
+        showMyDomainsDialog,
+        setShowMyDomainsDialog,
       }}
     >
       {children}

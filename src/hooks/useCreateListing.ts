@@ -10,11 +10,11 @@ import { parseUnits } from "viem";
 import { toast } from "sonner";
 import { getDomaClient } from "@/lib/doma-client";
 
-const useCreateOffer = () => {
+const useCreateListing = () => {
   const { data: walletClient } = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
 
-  const createOffer = useCallback(
+  const createListing = useCallback(
     async (
       tokenAddress: string,
       tokenId: string,
@@ -31,6 +31,7 @@ const useCreateOffer = () => {
         toast.error("Please switch to the correct network and try again.");
         return;
       }
+      
       if (!walletClient) return;
 
       const chainId = `eip155:${chainID || domaTestnet.id}` as const;
@@ -42,8 +43,16 @@ const useCreateOffer = () => {
       const isNativeToken =
         SUPPORTED_CURRENCIES.find((c) => c.value === currencyContractAddress)
           ?.label === "WETH";
+      console.log({
+        tokenAddress,
+        tokenId,
+        currencyContractAddress,
+        amount,
+        duration,
+        chainID,
+      });
 
-      const result = await client.createOffer({
+      const result = await client.createListing({
         signer,
         chainId,
         params: {
@@ -67,14 +76,15 @@ const useCreateOffer = () => {
           }
         },
       });
+      console.log("Create listing result:", result);
       return result;
     },
     [switchChainAsync, walletClient]
   );
 
   return {
-    createOffer,
+    createListing,
   };
 };
 
-export default useCreateOffer;
+export default useCreateListing;

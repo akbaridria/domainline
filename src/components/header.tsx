@@ -27,6 +27,7 @@ import { shortenAddress } from "@/lib/utils";
 import { useCallback } from "react";
 import useApp from "@/hooks/useApp";
 import useCopyClipboard from "@/hooks/useCopyClipboard";
+import DialogCreateListing from "./dialog-create-listing";
 
 const ToggleTheme = () => {
   const { setTheme, theme } = useTheme();
@@ -131,6 +132,7 @@ const Header = () => {
                 <User className="mr-2 h-4 w-4" />
                 View profile
               </DropdownMenuItem>
+              <DialogCreateListing />
               <DropdownMenuItem
                 onClick={handleDisconnect}
                 className="cursor-pointer"

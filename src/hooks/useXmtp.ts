@@ -8,7 +8,7 @@ import { toast } from "sonner";
 const useXmtp = () => {
   const [isLoadingXmtp, setIsLoadingXmtp] = useState(false);
   const { setXmtpClient, xmtpClient } = useApp();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const { signMessageAsync } = useSignMessage();
   const signer: Signer = useMemo(() => {
     return {
@@ -60,10 +60,10 @@ const useXmtp = () => {
   }, [address, setXmtpClient]);
 
   useEffect(() => {
-    if (address && !xmtpClient) {
+    if (address && isConnected && !xmtpClient) {
       connectXmtp();
     }
-  }, [address, xmtpClient, connectXmtp, setXmtpClient]);
+  }, [address, xmtpClient, connectXmtp, setXmtpClient, isConnected]);
 
   return {
     isLoadingXmtp,

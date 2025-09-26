@@ -5,11 +5,11 @@ import { domaTestnet } from "@/custom-chains/doma-testnet";
 import { toast } from "sonner";
 import { getDomaClient } from "@/lib/doma-client";
 
-const useAcceptOffer = () => {
+const useBuyListing = () => {
   const { data: walletClient } = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
 
-  const acceptOffer = useCallback(
+  const buyListing = useCallback(
     async (
       orderId: string,
       chainID?: number,
@@ -22,6 +22,7 @@ const useAcceptOffer = () => {
         toast.error("Please switch to the correct network and try again.");
         return;
       }
+
       if (!walletClient) return;
 
       const chainId = `eip155:${chainID || domaTestnet.id}` as const;
@@ -30,7 +31,7 @@ const useAcceptOffer = () => {
 
       const client = getDomaClient();
 
-      return await client.acceptOffer({
+      return await client.buyListing({
         chainId,
         signer,
         params: {
@@ -42,13 +43,14 @@ const useAcceptOffer = () => {
             toast.success("Offer accepted successfully!");
             callbackOnSuccess?.();
           }
+          console.log({ progress });
         },
       });
     },
     [switchChainAsync, walletClient]
   );
 
-  return { acceptOffer };
+  return { buyListing };
 };
 
-export default useAcceptOffer;
+export default useBuyListing;
