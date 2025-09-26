@@ -8,6 +8,8 @@ domainLine is a platform designed to facilitate domain trading by enabling users
 
 ## Features
 
+- Create domain listings for sale
+- Browse and buy available domain listings
 - User-to-user negotiation for domain purchases
 - Send and accept offers for domains
 - Real-time communication and offer management
@@ -16,6 +18,6 @@ domainLine is a platform designed to facilitate domain trading by enabling users
 ## Tech Stack
 
 - **XMTP Messaging**
-- **doma orderbook-sdk** (with custom implementation, as the official doma/orderbook-sdk is broken)
+- **doma orderbook-sdk**
 - **React**
 - **wagmi**
