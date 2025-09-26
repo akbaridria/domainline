@@ -6,12 +6,16 @@ import { Toaster } from "sonner";
 import useXmtp from "./hooks/useXmtp";
 import DialogProfile from "./components/dialog-profile";
 import ConnectXMTPLoader from "./components/connecti-xmtp-loader";
+import { useAccount } from "wagmi";
+import ConnectionWalletLoader from "./components/connection-wallet-loader";
 
 const App = () => {
   const { isLoadingXmtp } = useXmtp();
+  const { status } = useAccount();
   return (
     <Layout>
       {isLoadingXmtp && <ConnectXMTPLoader />}
+      {status === "connecting" && <ConnectionWalletLoader />}
       <Header />
       <ChatMessage />
       <ConnectModal />
