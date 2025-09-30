@@ -1,4 +1,6 @@
-import { CheckCircle, MessageCircle, Shield } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, CheckCircle, MessageCircle, Shield } from "lucide-react";
 
 const DefaultScreen = () => {
   return (
@@ -16,7 +18,18 @@ const DefaultScreen = () => {
             Select a chat to start messaging with end-to-end encryption
           </p>
         </div>
-
+        <Alert className="text-left">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            If you want to test with registered XMTP users, you can search for
+            these domains and start chatting:
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="secondary">anchortex.ai</Badge>
+              <Badge variant="secondary">anchorthegreat.ai</Badge>
+              <Badge variant="secondary">superanchor.ai</Badge>
+            </div>
+          </AlertDescription>
+        </Alert>
         <div className="space-y-4">
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-sm">
