@@ -42,7 +42,6 @@ const useXmtp = () => {
         setXmtpClient(existingClient);
       } else {
         const newClient = await Client.create(signer, { env: "dev" });
-        console.log("Created new XMTP client");
         setXmtpClient(newClient);
       }
     } catch (err) {
@@ -60,7 +59,7 @@ const useXmtp = () => {
   }, [address, setXmtpClient]);
 
   useEffect(() => {
-    if (address && status === 'connected' && !xmtpClient) {
+    if (address && status === "connected" && !xmtpClient) {
       connectXmtp();
     }
   }, [address, xmtpClient, connectXmtp, setXmtpClient, isConnected, status]);

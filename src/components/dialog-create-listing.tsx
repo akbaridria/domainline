@@ -85,19 +85,18 @@ const DialogCreateListing = () => {
 
   const handleCreateListing = useCallback(async () => {
     try {
-      console.log("Creating listing with:", { selectedDomain, formListing });
       setIsLoadingListing(true);
       if (!selectedDomain) return;
       if (!formListing.amount) return;
       const currencyName = SUPPORTED_CURRENCIES.find(
         (c) => c.value === formListing.currency
       )?.label;
-      console.log("Currency Name:", currencyName);
+
       if (!currencyName) return;
       const networkId = SUPPORTED_CHAINS.find(
         (c) => c.name === selectedDomain.network
       )?.id;
-      console.log("Network ID:", networkId);
+
       await createListing(
         selectedDomain?.tokenAddress || "",
         selectedDomain?.tokenId || "",
@@ -116,7 +115,7 @@ const DialogCreateListing = () => {
           setOpen(false);
         }
       );
-      console.log("Listing created successfully");
+
       setIsLoadingListing(false);
     } catch {
       setIsLoadingListing(false);

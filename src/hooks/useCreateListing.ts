@@ -3,8 +3,8 @@ import {
   viemToEthersSigner,
 } from "@doma-protocol/orderbook-sdk";
 import { useCallback } from "react";
-import { SUPPORTED_CURRENCIES } from "@/config";
-import { useSwitchChain, useWalletClient } from "wagmi";
+import { SUPPORTED_CHAINS, SUPPORTED_CURRENCIES } from "@/config";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
 import { domaTestnet } from "@/custom-chains/doma-testnet";
 import { parseUnits } from "viem";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { getDomaClient } from "@/lib/doma-client";
 
 const useCreateListing = () => {
   const { data: walletClient } = useWalletClient();
+  const { chainId: id } = useAccount();
   const { switchChainAsync } = useSwitchChain();
 
   const createListing = useCallback(
@@ -24,14 +25,24 @@ const useCreateListing = () => {
       chainID?: number,
       callbackOnSuccess?: () => void
     ) => {
-      const res = await switchChainAsync?.({
-        chainId: chainID || domaTestnet.id,
-      });
-      if (res?.id !== (chainID || domaTestnet.id)) {
-        toast.error("Please switch to the correct network and try again.");
-        return;
+      if (id !== (chainID || domaTestnet.id)) {
+        const chainName = SUPPORTED_CHAINS.find(
+          (chain) => chain.id === (chainID || domaTestnet.id)
+        )?.name;
+        toast.info(`Switching to ${chainName || "the correct network"}`);
+        const res = await switchChainAsync?.({
+          chainId: chainID || domaTestnet.id,
+        });
+        if (res?.id !== (chainID || domaTestnet.id)) {
+          toast.error(
+            `Please switch to ${
+              chainName || "the correct network"
+            } and try again.`
+          );
+          throw new Error("Wrong network");
+        }
       }
-      
+
       if (!walletClient) return;
 
       const chainId = `eip155:${chainID || domaTestnet.id}` as const;
@@ -43,14 +54,6 @@ const useCreateListing = () => {
       const isNativeToken =
         SUPPORTED_CURRENCIES.find((c) => c.value === currencyContractAddress)
           ?.label === "WETH";
-      console.log({
-        tokenAddress,
-        tokenId,
-        currencyContractAddress,
-        amount,
-        duration,
-        chainID,
-      });
 
       const result = await client.createListing({
         signer,
@@ -74,12 +77,28 @@ const useCreateListing = () => {
             toast.success("Offer created successfully!");
             callbackOnSuccess?.();
           }
+          const pendingProgress = progress.filter(
+            (p) => p.progressState === "pending"
+          )?.[0];
+
+          if (pendingProgress) {
+            if (["signature", "transaction"].includes(pendingProgress.kind)) {
+              toast.info(pendingProgress.description, {
+                description:
+                  "Make sure to confirm the action in your wallet. If your wallet is locked, please unlock it and refresh the page again.",
+                duration: 7000,
+              });
+            } else {
+              toast.info(pendingProgress.action, {
+                description: pendingProgress.description,
+              });
+            }
+          }
         },
       });
-      console.log("Create listing result:", result);
       return result;
     },
-    [switchChainAsync, walletClient]
+    [id, walletClient, switchChainAsync]
   );
 
   return {

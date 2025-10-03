@@ -31,8 +31,6 @@ const DialogMyDomains: React.FC<DialogMyDomainsProps> = ({ onSendMessage }) => {
     address ? `eip155:${chainID}:${address}` : ""
   );
 
-  console.log("data", data);
-
   const listListings = useMemo(() => {
     if (!data) return [];
     return data.flatMap((domain) => {
